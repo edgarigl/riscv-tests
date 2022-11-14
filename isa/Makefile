@@ -47,6 +47,9 @@ vpath %.S $(src_dir)
 %.dump: %
 	$(RISCV_OBJDUMP) $< > $@
 
+%.bin: %
+	$(RISCV_PREFIX)objcopy -O binary -j .text.init -j .tohost -j .text -j .data $< $@
+
 %.out: %
 	$(RISCV_SIM) --isa=rv64gc $< 2> $@
 
@@ -99,18 +102,19 @@ $(eval $(call compile_template,rv64mi,-march=rv64g -mabi=lp64))
 endif
 
 tests_dump = $(addsuffix .dump, $(tests))
+tests_bin = $(addsuffix .bin, $(tests))
 tests_hex = $(addsuffix .hex, $(tests))
 tests_out = $(addsuffix .out, $(filter rv64%,$(tests)))
 tests32_out = $(addsuffix .out32, $(filter rv32%,$(tests)))
 
 run: $(tests_out) $(tests32_out)
 
-junk += $(tests) $(tests_dump) $(tests_hex) $(tests_out) $(tests32_out)
+junk += $(tests) $(tests_dump) $(tests_bin) $(tests_hex) $(tests_out) $(tests32_out)
 
 #------------------------------------------------------------
 # Default
 
-all: $(tests_dump)
+all: $(tests_dump) $(tests_bin)
 
 #------------------------------------------------------------
 # Clean up
